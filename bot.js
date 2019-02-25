@@ -67,4 +67,4 @@ client.on('voiceStateUpdate', (oldMember, newMember, message) => {
 })
 
 
-client.login('NTEyNDczMjMzMDc4MDkxNzk4.D05DsQ.Rl3H11DlsTYjF9cEj_07-yflCnU')
+client.login('NTEyNDczMjMzMDc4MDkxNzk4.D1UHGw.3TadHl-Rmf5Uj0iz4G9nlEMTwOc')
