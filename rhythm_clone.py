@@ -14,7 +14,7 @@ import time
 import asyncio
 import subprocess
 import sys
-from dotenv import Dotenv
+# from dotenv import Dotenv
 intents = discord.Intents().all()
 # make the current working directory always the directory of the python script
 os.chdir(os.path.dirname(sys.argv[0]))
@@ -42,11 +42,9 @@ CWD = os.getcwd()
 SONG_FOLDER_PATH = startup()
 clear_all_songs()
 
-dotenv = Dotenv(f'{CWD}/.env')
 
-
-TOKEN = dotenv.get('DISCORD_TOKEN')
-CHANNEL = dotenv.get('CHANNEL_ID')
+TOKEN = _ # SET TO BOT TOKEN FROM DISCORD DEVELOPER TAB
+CHANNEL = _ # SET TO CHANNEL ID OF TEXT CHANNEL TO LISTEN TO
 CHANNEL = int(CHANNEL)
 QUEUE = []
 VOICE_CHANNEL = None
@@ -230,12 +228,10 @@ async def play(ctx, *args):
 
     try:
         VOICE_CHANNEL = await voice_channel.connect()
-        r = subprocess.run([f"{command}"], cwd=CWD, shell=True, capture_output=True)
-        # await ctx.send(f"{command}")
-        b = r.stderr
-        # await ctx.send(f'{r.stderr} {r.stdout}')
-        VOICE_CHANNEL.play(discord.FFmpegPCMAudio(source="out.mp3"))
-        await asyncio.sleep(1)
+        # UNCOMMENT THIS IF YOU WANT TO BE GREATED
+        #r = subprocess.run([f"{command}"], cwd=CWD, shell=True, capture_output=True)
+        #VOICE_CHANNEL.play(discord.FFmpegPCMAudio(source="out.mp3"))
+        #await asyncio.sleep(1)
 
     except discord.errors.ClientException as e:
         pass # already connected to the channel
@@ -251,7 +247,9 @@ async def play(ctx, *args):
             try:
                 song = get_jcole_beat(args[0])
                 if song == None:
-                    raise Exception("eh something went wrong but I genuinely don't know why, probably because a duplicate song was added... I didn't figure out how to do that")
+                    song = get_from_song_name(*args)
+                    if song == None:
+                        raise Exception("eh something went wrong but I genuinely don't know why, probably because a duplicate song was added... I didn't figure out how to do that")
                 print(f'from get_jcole_beat -> {song}')
             except Exception as e:
                 await ctx.send(e)
@@ -259,8 +257,10 @@ async def play(ctx, *args):
             try:
                 print(song)
             except Exception as e:
-                await ctx.send(e)
-                return
+                song = get_from_song_name(*args)
+                if song is None:
+                    await ctx.send(e)
+                    return
             if not VOICE_CHANNEL.is_playing() and len(QUEUE) == 1:
                 try:
                     play_music(VOICE_CHANNEL, song=song)
@@ -318,7 +318,7 @@ async def skip(ctx, *args):
     except Exception as e:
         print(e)
 
-@jcole.command(name='pause', help = "- Hiroshima but to the current song")
+@jcole.command(name='pause', help = "- Pauses the current song")
 async def pause(ctx, *args):
     global VOICE_CHANNEL, CHANNEL, PAUSE
     if ctx.message.channel.id != CHANNEL:
@@ -455,14 +455,16 @@ async def view_comments(ctx, *args):
     if to_return:
         await ctx.send(to_return)
 
-@jcole.command(name='reboot', help = "- reboots the raspberry pi, if this doesn't work then you're fucked :)")
-async def reboot(ctx, *args):
-    if ctx.message.channel.id != CHANNEL:
-        return await ctx.send(f'You can only send stuff to the music channel: <#{CHANNEL}>')
-    try:
-        os.system('reboot')
-    except Exception as e:
-        await ctx.send(f'Failed to reboot -> {e}')
+
+# REMOVING THIS SINCE YOU REALLY DONT WANT PEOPLE CONTROLLING YOUR SYSTEM 
+#@jcole.command(name='reboot', help = "- reboots the raspberry pi, if this doesn't work then you're fucked :)")
+#async def reboot(ctx, *args):
+#    if ctx.message.channel.id != CHANNEL:
+#        return await ctx.send(f'You can only send stuff to the music channel: <#{CHANNEL}>')
+#    try:
+#        os.system('reboot')
+#    except Exception as e:
+#        await ctx.send(f'Failed to reboot -> {e}')
 
 @jcole.command(name='lyrics', help = ' - might not work atm, trying to use rap genius to get the lyrics.')
 async def lyrics(ctx, *args):
@@ -477,35 +479,37 @@ async def lyrics(ctx, *args):
         await ctx.send(e)
     #print(song.lyrics)
 
-@jcole.command(name='hotfix', help= "- removes duplicate instances of the bot, this seems to be what causes 99% of the bot's problems.")
-async def hotfix(ctx, *args):
-    if ctx.message.channel.id != CHANNEL:
-         return await ctx.send(f'You can only send stuff to the music channel: <#{CHANNEL}>')
-    os.system('systemctl show --property MainPID rhythm > out.txt; pidof python3 >> out.txt')
 
-    with open('out.txt', 'r') as f:
-        test = f.readlines()
-        rhythm_pid = None
-        extra = []
-        for index, line in enumerate(test):
-            if index == 0:
-                rhythm_pid = line.replace('MainPID=','').strip()
-            else:
-                extra = line.strip().split(' ')
-                extras = [x for x in extra if x != rhythm_pid]
-                if extras:
-                    for PID in extras:
-                        print(f'Killing PID: {PID}')
-                        os.kill(int(PID), signal.SIGTERM)
-                        await ctx.send(f'`Main PID: {rhythm_pid}. Extra PID killed: {PID}`')
-                else:
-                    await ctx.send('No other instances to kill. If the bot is not working then maybe reboot. Be aware that rebooting sometimes is the cause of creating duplicate instances so you might have to run this command again. i dunno')
+# You can add this back if you run into errors, just change the systemctl command to something that will list the PIDs of all the instances of rhythm_clone.py
+# @jcole.command(name='hotfix', help= "- removes duplicate instances of the bot, this seems to be what causes 99% of the bot's problems.")
+# async def hotfix(ctx, *args):
+#     if ctx.message.channel.id != CHANNEL:
+#          return await ctx.send(f'You can only send stuff to the music channel: <#{CHANNEL}>')
+#     os.system('systemctl show --property MainPID rhythm > out.txt; pidof python3 >> out.txt')
+
+#     with open('out.txt', 'r') as f:
+#         test = f.readlines()
+#         rhythm_pid = None
+#         extra = []
+#         for index, line in enumerate(test):
+#             if index == 0:
+#                 rhythm_pid = line.replace('MainPID=','').strip()
+#             else:
+#                 extra = line.strip().split(' ')
+#                 extras = [x for x in extra if x != rhythm_pid]
+#                 if extras:
+#                     for PID in extras:
+#                         print(f'Killing PID: {PID}')
+#                         os.kill(int(PID), signal.SIGTERM)
+#                         await ctx.send(f'`Main PID: {rhythm_pid}. Extra PID killed: {PID}`')
+#                 else:
+#                     await ctx.send('No other instances to kill. If the bot is not working then maybe reboot. Be aware that rebooting sometimes is the cause of creating duplicate instances so you might have to run this command again. i dunno')
 
 @jcole.event
 async def on_ready():
     print(f'{jcole.user} is connected!')
-    await jcole.get_channel(CHANNEL).send('give me beats.')
-    # await jcole.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="mukiz"))
+    # await jcole.get_channel(CHANNEL).send('give me beats.')
+    await jcole.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="bangers"))
 
 dc.start()
 next_song.start()
