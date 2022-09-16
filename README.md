@@ -1,5 +1,5 @@
 # discoprd-bot
-Hosting for Mo Bomba Bot
+source for a rhythm bot close
 
 TOKEN = _ # SET TO BOT TOKEN FROM DISCORD DEVELOPER TAB
 CHANNEL = _ # SET TO CHANNEL ID OF TEXT CHANNEL TO LISTEN TO
