@@ -1,7 +1,7 @@
 # discoprd-bot
 source for a rhythm bot close. This was written rather poorly and works but sometimes needs a push.
 
-TOKEN = _ # SET TO BOT TOKEN FROM DISCORD DEVELOPER TAB
+TOKEN = _ # SET TO BOT TOKEN FROM DISCORD DEVELOPER TAB\
 CHANNEL = _ # SET TO CHANNEL ID OF TEXT CHANNEL TO LISTEN TO
 
 
